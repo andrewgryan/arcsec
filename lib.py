@@ -23,7 +23,9 @@ class DegreeMinuteSecond:
         return DegreeMinuteSecond.from_seconds(self.seconds)
 
     def __truediv__(self, other):
-        return DegreeMinuteSecond.from_seconds(self.seconds / other)
+        if not isinstance(other, int):
+            raise TypeError("Only integer division supported")
+        return DegreeMinuteSecond.from_seconds(self.seconds // other)
 
     @classmethod
     def from_seconds(cls, seconds: int):
@@ -35,6 +37,13 @@ class DegreeMinuteSecond:
     @property
     def seconds(self):
         return self.degree * 3600 + self.minute * 60 + self.second
+
+    def astype(self, dtype):
+        if dtype == float:
+            return self.degree + (self.minute / 60) + (self.second / 3600)
+        else:
+            raise TypeError(f"Cannot convert {type(self)} to {dtype}")
+
 
 
 # tests
@@ -69,3 +78,7 @@ def test_scalar_multiply():
 
 def test_scalar_divide():
     assert DegreeMinuteSecond(0, 1, 0) / 2 == DegreeMinuteSecond(0, 0, 30)
+
+
+def test_astype_given_float():
+    assert DegreeMinuteSecond(1, 1, 1).astype(float) == 1 + (1 / 60) + (1 / 3600)
