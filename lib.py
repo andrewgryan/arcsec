@@ -2,45 +2,53 @@ from dataclasses import dataclass
 
 @dataclass
 class DegreeMinuteSecond:
-    degree: int
-    minute: int
-    second: int
+    seconds: int
+
+    @property
+    def sign(self):
+        return (self.seconds > 0) - (self.seconds < 0)
+
+    @property
+    def degree(self):
+        return abs(self.seconds) // 3600
+
+    @property
+    def minute(self):
+        return (abs(self.seconds) // 60) % 60
+
+    @property
+    def second(self):
+        return abs(self.seconds) % 3600
 
     def __add__(self, other):
-        return DegreeMinuteSecond.from_seconds(self.seconds + other.seconds)
+        return DegreeMinuteSecond(self.seconds + other.seconds)
 
     def __sub__(self, other):
-        return DegreeMinuteSecond.from_seconds(self.seconds - other.seconds)
+        return DegreeMinuteSecond(self.seconds - other.seconds)
 
     def __str__(self):
-        return f"{self.degree}°{self.minute}'{self.second:02d}"
+        sign = "+" if self.sign == 1 else "-"
+        return f"{sign}{self.degree}°{self.minute}'{self.second:02d}"
 
     def __rmul__(self, other):
-        return DegreeMinuteSecond.from_seconds(self.seconds * other)
+        return DegreeMinuteSecond(self.seconds * other)
 
     @property
     def normalise(self):
-        return DegreeMinuteSecond.from_seconds(self.seconds)
+        return DegreeMinuteSecond(self.seconds)
 
     def __truediv__(self, other):
         if not isinstance(other, int):
             raise TypeError("Only integer division supported")
-        return DegreeMinuteSecond.from_seconds(self.seconds // other)
+        return DegreeMinuteSecond(self.seconds // other)
 
     @classmethod
-    def from_seconds(cls, seconds: int):
-        degree = seconds // 3600
-        minute = (seconds - degree * 3600) // 60
-        second = seconds - degree * 3600 - minute * 60
-        return cls(degree, minute, second)
-
-    @property
-    def seconds(self):
-        return self.degree * 3600 + self.minute * 60 + self.second
+    def angle(cls, degree: int, minute: int, second: int):
+        return cls(degree * 3600 + minute * 60 + second)
 
     def astype(self, dtype):
         if dtype == float:
-            return self.degree + (self.minute / 60) + (self.second / 3600)
+            return self.seconds / 3600
         else:
             raise TypeError(f"Cannot convert {type(self)} to {dtype}")
 
@@ -48,37 +56,37 @@ class DegreeMinuteSecond:
 
 # tests
 def test_main():
-    assert DegreeMinuteSecond(183, 59, 47) + DegreeMinuteSecond(-6, -59, -47) == DegreeMinuteSecond(177, 0, 0)
-    assert DegreeMinuteSecond(183, 59, 47) - DegreeMinuteSecond(-6, -59, -47) == DegreeMinuteSecond(190, 59, 34)
+    assert DegreeMinuteSecond.angle(183, 59, 47) + DegreeMinuteSecond.angle(-6, -59, -47) == DegreeMinuteSecond.angle(177, 0, 0)
+    assert DegreeMinuteSecond.angle(183, 59, 47) - DegreeMinuteSecond.angle(-6, -59, -47) == DegreeMinuteSecond.angle(190, 59, 34)
 
 
 def test_minus_given_overflow_second():
-    assert DegreeMinuteSecond(0, 1, 0) - DegreeMinuteSecond(0, 0, 1) == DegreeMinuteSecond(0, 0, 59)
+    assert DegreeMinuteSecond.angle(0, 1, 0) - DegreeMinuteSecond.angle(0, 0, 1) == DegreeMinuteSecond.angle(0, 0, 59)
 
 def test_sub_given_overflow_minute():
-    assert DegreeMinuteSecond(1, 0, 0) - DegreeMinuteSecond(0, 1, 0) == DegreeMinuteSecond(0, 59, 0)
+    assert DegreeMinuteSecond.angle(1, 0, 0) - DegreeMinuteSecond.angle(0, 1, 0) == DegreeMinuteSecond.angle(0, 59, 0)
 
 
 def test_add_given_overflow_second():
-    assert DegreeMinuteSecond(0, 0, 59) + DegreeMinuteSecond(0, 0, 2) == DegreeMinuteSecond(0, 1, 1)
+    assert DegreeMinuteSecond.angle(0, 0, 59) + DegreeMinuteSecond.angle(0, 0, 2) == DegreeMinuteSecond.angle(0, 1, 1)
 
 
 def test_add_given_overflow_minute():
-    assert DegreeMinuteSecond(0, 60, 0) + DegreeMinuteSecond(0, 1, 0) == DegreeMinuteSecond(1, 1, 0)
+    assert DegreeMinuteSecond.angle(0, 60, 0) + DegreeMinuteSecond.angle(0, 1, 0) == DegreeMinuteSecond.angle(1, 1, 0)
 
 
 def test_normalise():
-    assert DegreeMinuteSecond(-173, -59, -47).normalise == DegreeMinuteSecond(-174, 0, 13)
+    assert DegreeMinuteSecond.angle(-173, -59, -47).normalise == DegreeMinuteSecond.angle(-174, 0, 13)
 
 
 def test_scalar_multiply():
-    assert 2 * DegreeMinuteSecond(0, 0, 30) == DegreeMinuteSecond(0, 1, 0)
-    assert 3 * DegreeMinuteSecond(0, 0, 30) == DegreeMinuteSecond(0, 1, 30)
+    assert 2 * DegreeMinuteSecond.angle(0, 0, 30) == DegreeMinuteSecond.angle(0, 1, 0)
+    assert 3 * DegreeMinuteSecond.angle(0, 0, 30) == DegreeMinuteSecond.angle(0, 1, 30)
 
 
 def test_scalar_divide():
-    assert DegreeMinuteSecond(0, 1, 0) / 2 == DegreeMinuteSecond(0, 0, 30)
+    assert DegreeMinuteSecond.angle(0, 1, 0) / 2 == DegreeMinuteSecond.angle(0, 0, 30)
 
 
 def test_astype_given_float():
-    assert DegreeMinuteSecond(1, 1, 1).astype(float) == 1 + (1 / 60) + (1 / 3600)
+    assert DegreeMinuteSecond.angle(1, 1, 1).astype(float) == 1 + (1 / 60) + (1 / 3600)
