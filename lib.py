@@ -35,6 +35,9 @@ class DegreeMinuteSecond:
         sign = {1: "+", 0: "", -1: "-"}[self.sign]
         return f"{sign}{self.degree}°{self.minute}'{self.second:02d}''"
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(degree={self.sign * self.degree}, minute={self.minute}, second={self.second})"
+
     def __rmul__(self, other):
         return DegreeMinuteSecond(self.seconds * other)
 
@@ -44,7 +47,9 @@ class DegreeMinuteSecond:
         return DegreeMinuteSecond(self.seconds // other)
 
     @classmethod
-    def angle(cls, degree: int, minute: int, second: int):
+    def coord(cls, degree: int, minute: int, second: int):
+        assert (minute >= 0) & (minute < 60), f"minute must be in range 0-59, given '{minute}'"
+        assert (second >= 0) & (second < 60), f"second must be in range 0-59, given '{second}'"
         return cls(degree * 3600 + minute * 60 + second)
 
     def astype(self, dtype):
@@ -59,43 +64,43 @@ def degree(angle: float) -> DegreeMinuteSecond:
     return DegreeMinuteSecond(int(angle * 3600))
 
 
+def coord(degree: int, minute: int = 0, second: int = 0):
+    """Construct a DegreeMinuteSecond from a tuple representation of degrees, minutes and seconds"""
+    return DegreeMinuteSecond.coord(degree, minute, second)
+
 
 # tests
 def test_main():
-    assert DegreeMinuteSecond.angle(183, 59, 47) + DegreeMinuteSecond.angle(-6, -59, -47) == DegreeMinuteSecond.angle(177, 0, 0)
-    assert DegreeMinuteSecond.angle(183, 59, 47) - DegreeMinuteSecond.angle(-6, -59, -47) == DegreeMinuteSecond.angle(190, 59, 34)
+    assert coord(183, 59, 47) + coord(1, 1, 1) == coord(185, 0, 48)
+    assert coord(183, 59, 47) - coord(1, 59, 47) == coord(182, 0, 0)
 
 
 def test_minus_given_overflow_second():
-    assert DegreeMinuteSecond.angle(0, 1, 0) - DegreeMinuteSecond.angle(0, 0, 1) == DegreeMinuteSecond.angle(0, 0, 59)
+    assert coord(0, 1, 0) - coord(0, 0, 1) == coord(0, 0, 59)
 
 def test_sub_given_overflow_minute():
-    assert DegreeMinuteSecond.angle(1, 0, 0) - DegreeMinuteSecond.angle(0, 1, 0) == DegreeMinuteSecond.angle(0, 59, 0)
+    assert coord(1, 0, 0) - coord(0, 1, 0) == coord(0, 59, 0)
 
 
 def test_add_given_overflow_second():
-    assert DegreeMinuteSecond.angle(0, 0, 59) + DegreeMinuteSecond.angle(0, 0, 2) == DegreeMinuteSecond.angle(0, 1, 1)
+    assert coord(0, 0, 59) + coord(0, 0, 2) == coord(0, 1, 1)
 
 
 def test_add_given_overflow_minute():
-    assert DegreeMinuteSecond.angle(0, 60, 0) + DegreeMinuteSecond.angle(0, 1, 0) == DegreeMinuteSecond.angle(1, 1, 0)
-
-
-def test_normalise():
-    assert DegreeMinuteSecond.angle(-173, -59, -47) == DegreeMinuteSecond.angle(-174, 0, 13)
+    assert coord(0, 59, 0) + coord(0, 2, 0) == coord(1, 1, 0)
 
 
 def test_scalar_multiply():
-    assert 2 * DegreeMinuteSecond.angle(0, 0, 30) == DegreeMinuteSecond.angle(0, 1, 0)
-    assert 3 * DegreeMinuteSecond.angle(0, 0, 30) == DegreeMinuteSecond.angle(0, 1, 30)
+    assert 2 * coord(0, 0, 30) == coord(0, 1, 0)
+    assert 3 * coord(0, 0, 30) == coord(0, 1, 30)
 
 
 def test_scalar_divide():
-    assert DegreeMinuteSecond.angle(0, 1, 0) / 2 == DegreeMinuteSecond.angle(0, 0, 30)
+    assert coord(0, 1, 0) / 2 == coord(0, 0, 30)
 
 
 def test_astype_given_float():
-    assert DegreeMinuteSecond.angle(1, 1, 1).astype(float) == 1 + (1 / 60) + (1 / 3600)
+    assert coord(1, 1, 1).astype(float) == 1 + (1 / 60) + (1 / 3600)
 
 
 def test_constructor():
