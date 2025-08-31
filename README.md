@@ -23,3 +23,14 @@ double = 2 * angle  # 181° 0'
 double + half + degree(1 / 3600)  # 226° 15' 01'
 ```
 
+## Coordinate syntax
+
+If degrees, minutes and seconds are available as integers.
+
+```python
+from dms import coord
+
+lat = coord(51, 13, 27)
+print(str(lat + degree(1)))  # 52° 13' 27''
+```
+
