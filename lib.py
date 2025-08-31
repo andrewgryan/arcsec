@@ -64,6 +64,16 @@ def degree(angle: float) -> DegreeMinuteSecond:
     return DegreeMinuteSecond(int(angle * 3600))
 
 
+def minute(angle: float) -> DegreeMinuteSecond:
+    """Construct a DegreeMinuteSecond from a float representation of angle in minutes"""
+    return DegreeMinuteSecond(int(angle * 60))
+
+
+def second(angle: float) -> DegreeMinuteSecond:
+    """Construct a DegreeMinuteSecond from a float representation of angle in seconds"""
+    return DegreeMinuteSecond(int(angle))
+
+
 def coord(degree: int, minute: int = 0, second: int = 0):
     """Construct a DegreeMinuteSecond from a tuple representation of degrees, minutes and seconds"""
     return DegreeMinuteSecond.coord(degree, minute, second)
@@ -125,3 +135,12 @@ def test_str():
     assert str(degree(61 / 3600)) == "+0°1'01''"
     assert str(degree(61 / 60)) == "+1°1'00''"
     assert str(degree(123.456)) == "+123°27'21''"
+
+
+def test_minute_helper():
+    assert str(minute(1) + minute(2)) == "+0°3'00''"
+
+
+def test_second_helper():
+    assert str(minute(1) - second(2)) == "+0°0'58''"
+
