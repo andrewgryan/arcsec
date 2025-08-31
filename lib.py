@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(slots=True)
@@ -32,8 +32,8 @@ class DegreeMinuteSecond:
         return DegreeMinuteSecond(self.seconds - other.seconds)
 
     def __str__(self):
-        sign = {1: "+", 0: "", -1: "-"}[self.sign]
-        return f"{sign}{self.degree}°{self.minute}'{self.second:02d}''"
+        symbols = { 1: "+", 0: "", -1: "-"}
+        return f"{symbols[self.sign]}{self.degree}°{self.minute}'{self.second:02d}''"
 
     def __repr__(self):
         return f"{self.__class__.__name__}(degree={self.sign * self.degree}, minute={self.minute}, second={self.second})"
@@ -121,6 +121,7 @@ def test_sign():
 
 def test_str():
     assert str(degree(0)) == "0°0'00''"
+    assert str(degree(90.5)) == "+90°30'00''"
     assert str(degree(61 / 3600)) == "+0°1'01''"
     assert str(degree(61 / 60)) == "+1°1'00''"
     assert str(degree(123.456)) == "+123°27'21''"
