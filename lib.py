@@ -1,8 +1,13 @@
 from dataclasses import dataclass
 
-@dataclass
+
+@dataclass(slots=True)
 class DegreeMinuteSecond:
     seconds: int
+
+    def __post_init__(self):
+        if not isinstance(self.seconds, int):
+            raise TypeError(f"seconds must be int, got {type(self.seconds).__name__}")
 
     @property
     def sign(self):
@@ -18,7 +23,7 @@ class DegreeMinuteSecond:
 
     @property
     def second(self):
-        return abs(self.seconds) % 3600
+        return (abs(self.seconds) % 3600) % 60
 
     def __add__(self, other):
         return DegreeMinuteSecond(self.seconds + other.seconds)
@@ -27,15 +32,11 @@ class DegreeMinuteSecond:
         return DegreeMinuteSecond(self.seconds - other.seconds)
 
     def __str__(self):
-        sign = "+" if self.sign == 1 else "-"
-        return f"{sign}{self.degree}°{self.minute}'{self.second:02d}"
+        sign = {1: "+", 0: "", -1: "-"}[self.sign]
+        return f"{sign}{self.degree}°{self.minute}'{self.second:02d}''"
 
     def __rmul__(self, other):
         return DegreeMinuteSecond(self.seconds * other)
-
-    @property
-    def normalise(self):
-        return DegreeMinuteSecond(self.seconds)
 
     def __truediv__(self, other):
         if not isinstance(other, int):
@@ -51,6 +52,11 @@ class DegreeMinuteSecond:
             return self.seconds / 3600
         else:
             raise TypeError(f"Cannot convert {type(self)} to {dtype}")
+
+
+def degree(angle: float) -> DegreeMinuteSecond:
+    """Construct a DegreeMinuteSecond from a float representation of angle in degrees"""
+    return DegreeMinuteSecond(int(angle * 3600))
 
 
 
@@ -76,7 +82,7 @@ def test_add_given_overflow_minute():
 
 
 def test_normalise():
-    assert DegreeMinuteSecond.angle(-173, -59, -47).normalise == DegreeMinuteSecond.angle(-174, 0, 13)
+    assert DegreeMinuteSecond.angle(-173, -59, -47) == DegreeMinuteSecond.angle(-174, 0, 13)
 
 
 def test_scalar_multiply():
@@ -90,3 +96,26 @@ def test_scalar_divide():
 
 def test_astype_given_float():
     assert DegreeMinuteSecond.angle(1, 1, 1).astype(float) == 1 + (1 / 60) + (1 / 3600)
+
+
+def test_constructor():
+    import pytest
+
+    assert degree(1) == DegreeMinuteSecond(3600)
+    assert degree(1.5) == DegreeMinuteSecond(5400)
+    assert degree(2) == DegreeMinuteSecond(7200)
+
+    with pytest.raises(TypeError):
+        DegreeMinuteSecond(1.0)
+
+
+def test_sign():
+    assert degree(0).sign == 0
+    assert degree(-0).sign == 0
+
+
+def test_str():
+    assert str(degree(0)) == "0°0'00''"
+    assert str(degree(61 / 3600)) == "+0°1'01''"
+    assert str(degree(61 / 60)) == "+1°1'00''"
+    assert str(degree(123.456)) == "+123°27'21''"
