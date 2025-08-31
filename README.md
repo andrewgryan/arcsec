@@ -11,6 +11,7 @@ print(str(angle))  # 90°30'00''
 print(angle.degree)  # 90
 print(angle.minute)  # 30
 print(angle.second)  # 0
+```
 
 ## Arithmetic
 
