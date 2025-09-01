@@ -44,3 +44,11 @@ print(degree(10) + minute(5) + second(1))  # +10°5'01''
 
 assert degree(10) + minute(5) + second(1) == coord(10, 5, 1)
 ```
+
+## Float conversion 
+
+While modestly convenient to work in degree, minute, second space, to integrate with existing code the ability to map back/forth to floating point representation is desirable.
+
+```python
+coord(90, 30, 0).astype(float)  # 90.5
+```
