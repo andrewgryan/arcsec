@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass(slots=True)
-class DegreeMinuteSecond:
+class ArcSecond:
     seconds: int
 
     def __post_init__(self):
@@ -26,10 +26,10 @@ class DegreeMinuteSecond:
         return (abs(self.seconds) % 3600) % 60
 
     def __add__(self, other):
-        return DegreeMinuteSecond(self.seconds + other.seconds)
+        return self.__class__(self.seconds + other.seconds)
 
     def __sub__(self, other):
-        return DegreeMinuteSecond(self.seconds - other.seconds)
+        return self.__class__(self.seconds - other.seconds)
 
     def __str__(self):
         symbols = { 1: "+", 0: "", -1: "-"}
@@ -39,12 +39,12 @@ class DegreeMinuteSecond:
         return f"{self.__class__.__name__}(degree={self.sign * self.degree}, minute={self.minute}, second={self.second})"
 
     def __rmul__(self, other):
-        return DegreeMinuteSecond(self.seconds * other)
+        return self.__class__(self.seconds * other)
 
     def __truediv__(self, other):
         if not isinstance(other, int):
             raise TypeError("Only integer division supported")
-        return DegreeMinuteSecond(self.seconds // other)
+        return self.__class__(self.seconds // other)
 
     @classmethod
     def coord(cls, degree: int, minute: int, second: int):
@@ -59,24 +59,24 @@ class DegreeMinuteSecond:
             raise TypeError(f"Cannot convert {type(self)} to {dtype}")
 
 
-def degree(angle: float) -> DegreeMinuteSecond:
-    """Construct a DegreeMinuteSecond from a float representation of angle in degrees"""
-    return DegreeMinuteSecond(int(angle * 3600))
+def degree(angle: float) -> ArcSecond:
+    """Construct a ArcSecond from a float representation of angle in degrees"""
+    return ArcSecond(int(angle * 3600))
 
 
-def minute(angle: float) -> DegreeMinuteSecond:
-    """Construct a DegreeMinuteSecond from a float representation of angle in minutes"""
-    return DegreeMinuteSecond(int(angle * 60))
+def minute(angle: float) -> ArcSecond:
+    """Construct a ArcSecond from a float representation of angle in minutes"""
+    return ArcSecond(int(angle * 60))
 
 
-def second(angle: float) -> DegreeMinuteSecond:
-    """Construct a DegreeMinuteSecond from a float representation of angle in seconds"""
-    return DegreeMinuteSecond(int(angle))
+def second(angle: float) -> ArcSecond:
+    """Construct a ArcSecond from a float representation of angle in seconds"""
+    return ArcSecond(int(angle))
 
 
 def coord(degree: int, minute: int = 0, second: int = 0):
-    """Construct a DegreeMinuteSecond from a tuple representation of degrees, minutes and seconds"""
-    return DegreeMinuteSecond.coord(degree, minute, second)
+    """Construct a ArcSecond from a tuple representation of degrees, minutes and seconds"""
+    return ArcSecond.coord(degree, minute, second)
 
 
 # tests
@@ -116,12 +116,12 @@ def test_astype_given_float():
 def test_constructor():
     import pytest
 
-    assert degree(1) == DegreeMinuteSecond(3600)
-    assert degree(1.5) == DegreeMinuteSecond(5400)
-    assert degree(2) == DegreeMinuteSecond(7200)
+    assert degree(1) == ArcSecond(3600)
+    assert degree(1.5) == ArcSecond(5400)
+    assert degree(2) == ArcSecond(7200)
 
     with pytest.raises(TypeError):
-        DegreeMinuteSecond(1.0)
+        ArcSecond(1.0)
 
 
 def test_sign():
