@@ -25,6 +25,10 @@ class ArcSecond:
     def second(self):
         return (abs(self.seconds) % 3600) % 60
 
+    @property
+    def fmt(self):
+        return ArcSecondFormatter(self)
+
     def __add__(self, other):
         return self.__class__(self.seconds + other.seconds)
 
@@ -57,6 +61,24 @@ class ArcSecond:
             return self.seconds / 3600
         else:
             raise TypeError(f"Cannot convert {type(self)} to {dtype}")
+
+
+class ArcSecondFormatter:
+    def __init__(self, arc: ArcSecond):
+        self.arc = arc
+
+    @property
+    def latitude(self):
+        symbols = { 1: "N", 0: "", -1: "S"}
+        arc = self.arc
+        return f"{arc.degree}°{arc.minute}'{arc.second:02d}\"{symbols[arc.sign]}"
+
+    @property
+    def longitude(self):
+        symbols = { 1: "E", 0: "", -1: "W"}
+        arc = self.arc
+        return f"{arc.degree}°{arc.minute}'{arc.second:02d}\"{symbols[arc.sign]}"
+
 
 
 def degree(angle: float) -> ArcSecond:
@@ -144,3 +166,9 @@ def test_minute_helper():
 def test_second_helper():
     assert str(minute(1) - second(2)) == "+0°0'58''"
 
+
+def test_fmt():
+    assert degree(1).fmt.latitude == "1°0'00\"N"
+    assert degree(-1).fmt.latitude == "1°0'00\"S"
+    assert degree(1).fmt.longitude == "1°0'00\"E"
+    assert degree(-1).fmt.longitude == "1°0'00\"W"
